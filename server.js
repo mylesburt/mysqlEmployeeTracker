@@ -5,7 +5,7 @@ const connection = mysql.createConnection({
     host: "localhost",
     port: 4400,
     user: "root",
-    password: "#codingismypassion20",
+    password: "",
     database: "employee_trackerDB"
 });
 
@@ -75,11 +75,9 @@ function addDepartment() {
     ])
         .then(function (answer) {
             connection.query("INSERT...",
-                [
-                    {
-                        department_name: answer.departmentAdded
-                    }
-                ],
+                {
+                    department_name: answer.departmentAdded
+                },
                 function (err) {
                     if (err) throw err;
                     console.log("Role " + answer.departmentAdded + " has been added.");
@@ -124,8 +122,12 @@ function addRole() {
                     },
                     {
                         role_salary: answer.roleSalary
+                    },
+                    {
+
                     }
                 ],
+                //function needs to added here for rawlist to be accessed...
                 function (err) {
                     if (err) throw err;
                     console.log("Role " + answer.roleAdded + " has been added.");
