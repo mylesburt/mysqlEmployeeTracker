@@ -3,9 +3,9 @@ const inquirer = require("inquirer");
 
 const connection = mysql.createConnection({
     host: "localhost",
-    port: 4400,
+    port: 3306,
     user: "root",
-    password: "",
+    password: "#codingismypassion20",
     database: "employee_trackerDB"
 });
 
@@ -18,7 +18,7 @@ connection.connect(function (err) {
 function runTracker() {
     inquirer.prompt({
         name: "trackerOptions",
-        type: "rawlist",
+        type: "list",
         message: "Welcome to Employee Tracker, how may I help you?",
         choices: [
             "Add department",
@@ -68,112 +68,88 @@ function runTracker() {
 function addDepartment() {
     inquirer.prompt([
         {
-            name: "departmentAdded",
+            name: "name",
             type: "input",
             message: "What department would you like to add?"
         }
     ])
         .then(function (answer) {
-            connection.query("INSERT...",
-                {
-                    department_name: answer.departmentAdded
-                },
-                function (err) {
-                    if (err) throw err;
-                    console.log("Role " + answer.departmentAdded + " has been added.");
-                    runTracker();
-                }
-            );
+            connection.query("INSERT INTO department SET ?", answer);
+            runTracker();
         });
-}
+};
 
 // This function will add user data into the employee_role table of schema.sql
 
 function addRole() {
-    inquirer.prompt([
-        {
-            name: "roleAdded",
-            type: "input",
-            message: "What role would you like to add?"
-        },
-        {
-            name: "roleSalary",
-            type: "input",
-            message: "What is the salary for this role?"
-        },
-        {
-            name: "roleDepartment",
-            type: "rawlist",
-            choices: function () {
-                let roleDepartArray = [];
-                for (var i = 0; i < results.length; i++) {
-                    roleDepartArray.push(results[i].department_name);
-                }
-                return roleDepartArray;
+    let query = "SELECT * FROM department";
+    connection.query(query, function (err, res) {
+        if (err) throw err;
+        const departmentChoices = res.map(({ id, name }) => ({
+            name: name,
+            value: id
+        }));
+        console.log(departmentChoices);
+        inquirer.prompt([
+            {
+                name: "title",
+                type: "input",
+                message: "What role would you like to add?"
             },
-            message: "What department does this role belong to?"
-        }
-    ])
-        .then(function (answer) {
-            connection.query("INSERT...",
-                [
-                    {
-                        role_title: answer.roleAdded,
-                    },
-                    {
-                        role_salary: answer.roleSalary
-                    },
-                    {
-
-                    }
-                ],
-                //function needs to added here for rawlist to be accessed...
-                function (err) {
-                    if (err) throw err;
-                    console.log("Role " + answer.roleAdded + " has been added.");
-                    runTracker();
-                }
+            {
+                name: "salary",
+                type: "input",
+                message: "What is the salary for this role?"
+            },
+            {
+                name: "department_id",
+                type: "list",
+                choices: departmentChoices,
+                message: "What department does this role belong to?"
+            }
+        ])
+            .then(function (answer) {
+                connection.query("INSERT INTO role SET ?", answer);
+                runTracker();
+            }
             );
-        });
-}
+    });
+};
 
 // This function will add user data into the employee table of schema.sql
 
 function addEmployee() {
-    inquirer.prompt([
-        {
-            name: "employeeFirst",
-            type: "input",
-            message: "What is the Employee's first name?"
-        },
-        {
-            name: "employeeLast",
-            type: "input",
-            message: "What it the Employee's last name?"
-        },
-        {
-            name: "employeeRole",
-            type: "rawlist",
-            choices: function () {
-                let roleArray = [];
-                for (var i = 0; i < results.length; i++) {
-                    roleArray.push(results[i].role_title);
-                }
-                return roleArray;
+    let query = "SELECT * FROM role"
+    connection.query(query, function (err, res) {
+        if (err) throw err;
+        const roleChoices = res.map(({ title, salary, department_id }) => ({
+            title: title,
+            salary: salary,
+            value: department_id
+        }));
+        console.log(roleChoices);
+        inquirer.prompt([
+            {
+                name: "first_name",
+                type: "input",
+                message: "What is the Employee's first name?"
             },
-            message: "What is the role of the Employee?",
-        }
-    ])
-        .then(function (answer) {
-            connection.query("INSERT...",
-                {
-                    employeeAdded: answer.employeeAdded
-                },
-                function (err) {
-                    if (err) throw err;
-                    console.log("Role " + answer.employeeAdded + " has been added.");
-                    runTracker();
-                }
+            {
+                name: "last_name",
+                type: "input",
+                message: "What it the Employee's last name?"
+            },
+            {
+                name: "role_id",
+                type: "rawlist",
+                choices: roleChoices,
+                message: "What is the role of the Employee?",
+            }
+        ])
+            .then(function (answer) {
+                connection.query("INSERT INTO employee SET ?", answer);
+                runTracker();
+            }
             );
-        });
-}
+    });
+};
