@@ -27,7 +27,8 @@ function runTracker() {
             "View departments",
             "View roles",
             "View employees",
-            "Update employee roles"
+            "Update employee roles",
+            "Exit?"
         ]
     })
         .then(function (answer) {
@@ -58,6 +59,10 @@ function runTracker() {
 
                 case "Update employee roles":
                     updateEmployees();
+                    break;
+
+                case "Exit?":
+                    process.exit();
                     break;
             }
         });
@@ -151,5 +156,82 @@ function addEmployee() {
                 runTracker();
             }
             );
+    });
+};
+
+function viewDepartments() {
+    let query = "SELECT * FROM department";
+    connection.query(query, function (err, res) {
+        if (err) throw err;
+        const departmentList = res.map(({ id, name }) => ({
+            name: name,
+            value: id
+        }));
+        console.table(departmentList);
+        runTracker();
+    });
+};
+
+function viewRoles() {
+    let query = "SELECT * FROM role";
+    connection.query(query, function (err, res) {
+        if (err) throw err;
+        const roleList = res.map(({ title, salary, department_id }) => ({
+            title: title,
+            salary: salary,
+            value: department_id
+        }));
+        console.table(roleList);
+        runTracker();
+    });
+};
+
+function viewEmployees() {
+    let query = "SELECT * FROM employee";
+    connection.query(query, function (err, res) {
+        if (err) throw err;
+        const employeeList = res.map(({ first_name, last_name, role_id }) => ({
+            first_name: first_name,
+            last_name: last_name,
+            role_id: role_id
+        }));
+        console.table(employeeList);
+        runTracker();
+    });
+};
+
+function updateEmployees() {
+
+    // look up on join mysql
+    let query = "SELECT * FROM employee";
+    connection.query(query, function (err, res) {
+        if (err) throw err;
+        const employeeUpdateList = res.map(({ first_name, last_name, id }) => ({
+            name: first_name + ' ' + last_name,
+
+            value: id
+        }));
+        const roleSelectorList = res.map(({ title, id }) => ({
+            name: title,
+            value: id
+        }));
+        inquirer.prompt([
+            {
+                name: "id",
+                type: "list",
+                choices: employeeUpdateList,
+                message: "Which employee would you like to update?"
+            },
+            {
+                name: "role_id",
+                type: "list",
+                choices: roleSelectorList,
+                message: "Choose a new role for the employee."
+            }
+        ])
+            .then(function (answer) {
+                connection.query("UPDATE employee SET role_id = ? WHERE id = ?", [answer.role_id, answer.id]);
+                runTracker();
+            });
     });
 };
